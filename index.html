@@ -488,10 +488,12 @@ ttl.stb.desc = 'Even if it\'s a smaller tool compared to any other weapon, you\'
 ttl.slp1 = new Title(12); 
 ttl.slp1.name = 'Sleeper';
 ttl.slp1.desc = 'You really like sleeping don\'t you? You spend a lot of time in your bed';
-
+let sleepcraft=0;
 ttl.slp2 = new Title(13); 
 ttl.slp2.name = 'Heavy Sleeper'; ttl.slp2.rar=2
 ttl.slp2.desc = 'You learned to sleep very soundly, without any care for the outside world. Your body begins to adapt and grow stronger with every break you take';
+ttl.slp2.talent = function(){sleepcraft=1}
+ttl.slp2.tdesc = 'You can craft while sleeping'
 
 ttl.slp3 = new Title(14);
 ttl.slp3.name = 'Dreamwatcher'; ttl.slp3.rar=3
@@ -878,6 +880,10 @@ ttl.ndthextr.desc = 'You kept yourself well and protected, avoiding danger and m
 ttl.indkill = new Title(107); 
 ttl.indkill.name = 'Indirect Killer'; ttl.indkill.rar=2;ttl.indkill.rars=true;
 ttl.indkill.desc = '';
+
+ttl.exst1 = new Title(107); 
+ttl.exst1.name = 'Sentient being'; ttl.exst1.rar=1;
+ttl.exst1.desc = 'You finally begin to realise your existence';
 
 
 function Weather(id){
@@ -1824,7 +1830,7 @@ skl.sleep.mlstn=[{lv:2,f:()=>{you.hpa+=2;you.stat_r();dom.d5_1_1.update()},g:fal
                  {lv:7,f:()=>{you.hpa+=15;you.stat_r();dom.d5_1_1.update()},g:false,p:"HP +15"},
                  {lv:8,f:()=>{you.hpa+=20;you.stat_r();dom.d5_1_1.update()},g:false,p:"HP +20"},
                  {lv:9,f:()=>{skl.ptnc.p+=.1;you.hpa+=25;you.stat_r();dom.d5_1_1.update()},g:false,p:"Patience EXP Gain +10%, HP +25"},
-                 {lv:10,f:()=>{giveTitle(ttl.slp2);skl.dth.p+=.1;you.hpa+=30;you.stat_r();dom.d5_1_1.update()},g:false,p:"HP +30, Death EXP Gain +10%, New Title"},
+                 {lv:10,f:()=>{giveTitle(ttl.slp2);skl.dth.p+=.1;you.hpa+=30;you.stat_r();dom.d5_1_1.update();},g:false,p:"HP +30, Death EXP Gain +10%, New Title"},
                  {lv:11,f:()=>{you.hpa+= 35;you.stat_r();dom.d5_1_1.update()},g:false,p:"HP +35"},
                  {lv:12,f:()=>{you.hpa+= 50;you.stat_r();dom.d5_1_1.update()},g:false,p:"HP +50"},
                  ];
@@ -2182,6 +2188,17 @@ skl.coldr.name = 'Cold Resistance'; skl.coldr.sp='.66em';
 skl.coldr.desc = 'Ability to tolerate harsh and cold temperatures'+dom.dseparator+'<small style="color:darkorange">Slightly decreases energy loss when cold</small>';
 skl.coldr.use=function(x,y){return this.lvl*.004}
 
+skl.exst = new Skill(); skl.exst.id = 161; skl.exst.type=6;
+skl.exst.name = 'Existence'; skl.exst.sp='.66em';
+skl.exst.desc = 'Ability to exist'+dom.dseparator+'<small style="color:darkorange">Just a small joke</small>';
+skl.exst.use=function(x,y){return this.lvl*.004}
+skl.exst.mlstn=[{lv:1,f:()=>{you.hpa+=5;you.stat_r()},g:false,p:"HP +5"},
+              {lv:2,f:()=>{you.exp_t+=.03;skl.painr.p+=.05;you.stat_r()},g:false,p:"EXP Gain +3%, Pain Resistance EXP Gain +5%"},
+              {lv:3,f:()=>{you.eqp_t+=.05;you.spda+=1;you.stat_r()},g:false,p:"EXP Gain +5%, SPD +1"}, 
+              {lv:4,f:()=>{skl.dngs.p+=.15;you.stra+=2;giveTitle(ttl.exst1);you.stat_r()},g:false,p:"STR +2, Danger Sense EXP Gain +15%, New Title"},
+              {lv:6,f:()=>{skl.painr.p+=.1;you.sata+=15;;you.stat_r()},g:false,p:"SAT +15, Pain Resistance EXP Gain +10%"},
+              {lv:8,f:()=>{;you.stra+=2;you.stat_r()},g:false,p:"STR+2"},
+              ]; 
 ///////////////////////////////////////////
 //ITM
 ///////////////////////////////////////////
@@ -7255,6 +7272,11 @@ item.dmice1.dss=[{item:item.sbone,amount:1,q:.6,max:3}]
 item.dbdc1.dss=[{item:item.sbone,amount:1,q:.5,max:2}]
 
 ////misc////
+function realsecond(){
+   giveSkExp(skl.exst,5.2)
+	
+}
+setInterval(realsecond,1000)
 global.wdrop=[{item:item.lckl,c:.0000048}];
 global.rdrop=[ // g f e 
   [{item:item.lsrd,c:.00026}],  
@@ -10725,7 +10747,7 @@ function _refreshRcpCnt(r,t,t2){
 }
 
 function _fcraft(what,safe){
-if(safe){safe=false;if(global.flags.sleepmode===true){msg('You may want to wake up first','red');return};if(global.flags.btl===true){msg('You\'re too busy fighting','red');return};if(global.flags.rdng===true){msg('You\'re too occupied with reading','red');return};if(global.flags.busy===true){msg('You\'re too busy with something else','red');return};let ntest= make(what,true); for(let g=0;g<what.rec.length;g++){if(what.rec.length===ntest.y.length&&ntest.o[0]!==2)safe=true} if(safe){make(what);global.stat.crftt++;iftrunkopen(1)}else{if(global.flags.rptbncgtf){clearInterval(timers.rptbncgt); global.flags.rptbncgtf=false;}}}}
+if(safe){safe=false;if(global.flags.sleepmode===true && sleepcraft<1){msg('You may want to wake up first','red');return};if(global.flags.btl===true){msg('You\'re too busy fighting','red');return};if(global.flags.rdng===true){msg('You\'re too occupied with reading','red');return};if(global.flags.busy===true){msg('You\'re too busy with something else','red');return};let ntest= make(what,true); for(let g=0;g<what.rec.length;g++){if(what.rec.length===ntest.y.length&&ntest.o[0]!==2)safe=true} if(safe){make(what);global.stat.crftt++;iftrunkopen(1)}else{if(global.flags.rptbncgtf){clearInterval(timers.rptbncgt); global.flags.rptbncgtf=false;}}}}
 
 function renderSkl(skl){
   this.skwmmc = addElement(dom.skcon,'div',null,'skwmmc');
